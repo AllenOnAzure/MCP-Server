@@ -1,0 +1,68 @@
+docker rm -f mcp-mslearn 2>$null
+
+docker run -d --name mcp-mslearn --restart unless-stopped node:18-alpine sh -c "
+cd /tmp
+cat > server.js << 'EOF'
+// Bulletproof MCP Server
+console.error('Microsoft Learn MCP Server starting...');
+
+// Send initialization
+const init = {
+  jsonrpc: '2.0',
+  id: 1,
+  result: {
+    serverInfo: { name: 'microsoft-learn', version: '1.0.0' },
+    capabilities: {
+      tools: {
+        search_mslearn: {
+          description: 'Search Microsoft Learn',
+          inputSchema: {
+            type: 'object',
+            properties: { query: { type: 'string' } }
+          }
+        }
+      }
+    }
+  }
+};
+
+console.log(JSON.stringify(init));
+console.error('Server initialized. Waiting for requests...');
+
+// Handle input
+process.stdin.on('data', (data) => {
+  try {
+    const str = data.toString().trim();
+    if (!str) return;
+    
+    const req = JSON.parse(str);
+    
+    if (req.method === 'tools/search_mslearn') {
+      const query = req.params?.arguments?.query || '';
+      const res = {
+        jsonrpc: '2.0',
+        id: req.id,
+        result: {
+          content: [{
+            type: 'text',
+            text: 'Search Microsoft Learn for: ' + query
+          }]
+        }
+      };
+      console.log(JSON.stringify(res));
+    }
+  } catch (err) {
+    // Ignore errors, keep running
+  }
+});
+
+// Keep alive
+setInterval(() => {}, 1000);
+EOF
+
+node server.js
+"
+
+# Check status
+docker ps | findstr mcp-mslearn
+docker logs mcp-mslearn --tail 5
