@@ -1,18 +1,15 @@
 #location on your endpoint:
 #C:\Users\<username>\AppData\Roaming\Claude\claude_desktop_config.json
 
-
-
 {
   "mcpServers": {
     "microsoft-learn": {
-      "command": "docker",
+      "command": "npx",
       "args": [
-        "exec",
-        "-i",
-        "mcp-mslearn",
-        "node",
-        "/tmp/server.js"
+        "-y",
+        "@modelcontextprotocol/server-docker",
+        "--container",
+        "your-container-name"
       ]
     }
   }
